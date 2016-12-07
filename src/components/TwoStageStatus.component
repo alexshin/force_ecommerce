@@ -1,0 +1,19 @@
+<apex:component >
+    <apex:attribute name="isActive" description="TRUE or FALSE status" type="Boolean" required="true"></apex:attribute>
+    <apex:attribute name="size" description="Element size. See more http://semantic-ui.com" type="String" required="false" default="large"></apex:attribute>
+    <apex:attribute name="useLabels" description="If element needs to have a label" type="String" required="false" default="true"></apex:attribute>
+
+    <apex:outputText rendered="{! isActive}" escape="false">
+        <i class="{!size} green checkmark icon"></i>
+        <apex:outputText rendered="{! (useLabels == 'true')}">
+            active
+        </apex:outputText>
+    </apex:outputText>
+
+    <apex:outputText rendered="{! NOT(isActive)}" escape="false">
+        <i class="{!size} red remove icon"></i>
+        <apex:outputText rendered="{! (useLabels == 'true')}">
+            inactive
+        </apex:outputText>
+    </apex:outputText>
+</apex:component>

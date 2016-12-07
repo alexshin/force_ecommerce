@@ -1,0 +1,38 @@
+<apex:page showHeader="false" sidebar="false" standardController="Product__c" recordSetVar="products">
+    <c:CommonLayout pageTitle="Manage products" activeItem="crud_products">
+        <div class="ui segment">
+            <a href="{!$Page.ProductEdit}" class="ui active positive button">
+                <i class="plus icon"></i>
+                Add new product
+            </a>
+        </div>
+        <table class="ui table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Code</th>
+                <th>Product Name</th>
+                <th>Short description</th>
+                <th>Active</th>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat value="{!products}" var="product">
+                <tr>
+                    <td>{!product.Id}</td>
+                    <td>{!product.Code__c}</td>
+                    <td>
+                        <apex:outputLink value="{!$Page.ProductEdit}?id={!product.id}">
+                            {!product.Name}
+                        </apex:outputLink>
+                    </td>
+                    <td>{!product.Description__c}</td>
+                    <td>
+                        <c:TwoStageStatus isActive="{!product.IsActive__c}" />
+                    </td>
+                </tr>
+            </apex:repeat>
+        </tbody>
+        </table>
+    </c:CommonLayout>
+</apex:page>

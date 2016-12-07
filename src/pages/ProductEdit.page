@@ -1,0 +1,26 @@
+<apex:page showHeader="false" sidebar="false" standardController="Product__c" extensions="ProductEditController">
+    <c:CommonLayout pageTitle="{! IF(Product__c.Name != '', 'Edit product', 'Create product') }">
+        <apex:form styleClass="ui form">
+            <h4 class="ui dividing header">Fill fields of the form</h4>
+            <div class="field">
+                <apex:outputLabel value="Name" />
+                <apex:inputField value="{! Product__c.Name }" />
+            </div>
+            <div class="field">
+                <apex:outputLabel value="Product code" />
+                <apex:inputField value="{! Product__c.Code__c }" />
+            </div>
+            <div class="field">
+                <apex:outputLabel value="Description" />
+                <apex:inputField value="{! Product__c.Description__c }" />
+            </div>
+            <div class="field">
+                <div class="ui checkbox">
+                    <apex:inputField value="{! Product__c.isActive__c }" />
+                    <apex:outputLabel value="Active" />
+                </div>
+            </div>
+            <apex:commandButton action="{! save}" value="Save" styleClass="ui primary button" />
+        </apex:form>
+    </c:CommonLayout>
+</apex:page>

@@ -1,0 +1,12 @@
+<apex:page showHeader="false" sidebar="false" standardController="Product_Category__c" extensions="CategoryEditController">
+    <c:CommonLayout pageTitle="{! IF(Product_Category__c.Name != '', 'Edit category', 'Create category') }">
+        <apex:form styleClass="ui form">
+            <h4 class="ui dividing header">Fill fields of the form</h4>
+            <div class="field">
+                <apex:outputLabel value="Name" />
+                <apex:inputField value="{! Product_Category__c.Name }" />
+            </div>
+            <apex:commandButton action="{! save}" value="Save" styleClass="ui primary button" />
+        </apex:form>
+    </c:CommonLayout>
+</apex:page>

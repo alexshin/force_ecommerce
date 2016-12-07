@@ -1,0 +1,43 @@
+<apex:component >
+    
+    <apex:includeScript value="//code.jquery.com/jquery-3.1.1.min.js" />
+    <apex:includeScript value="//cdnjs.cloudflare.com/ajax/libs/knockout/3.4.1/knockout-min.js" />
+    <apex:includeScript value="//cdnjs.cloudflare.com/ajax/libs/store.js/1.3.20/store.min.js" />
+    <apex:includeScript value="//cdnjs.cloudflare.com/ajax/libs/jsforce/1.7.0/jsforce.min.js" />
+
+    <apex:includeScript value="{!URLFOR($Resource.semanticui, 'semantic.min.js')}" />
+
+    <apex:stylesheet value="{!URLFOR($Resource.semanticui, 'semantic.css')}" />
+
+    <style>
+        .pusher {
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
+        }
+
+        .pusher > .footer {
+            flex: 1;
+        }
+
+        .page-content__container {
+            padding-bottom: 5rem;
+        }
+
+        .page-top-menu__container{
+            padding-bottom: 2rem;
+        }
+
+        .categories-container__header{
+            cursor: pointer;
+        }
+
+        .products__container{
+            padding-top: 3em;
+        }
+    </style>
+    
+    <script>
+        $('.ui.checkbox').checkbox();
+    </script>
+</apex:component>

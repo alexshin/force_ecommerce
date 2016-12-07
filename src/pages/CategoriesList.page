@@ -1,0 +1,30 @@
+<apex:page showHeader="false" sidebar="false" standardController="Product_Category__c" recordSetVar="categories">
+    <c:CommonLayout pageTitle="Manage products" activeItem="categories_list">
+        <div class="ui segment">
+            <a href="{!$Page.CategoryEdit}" class="ui active positive button">
+                <i class="plus icon"></i>
+                Add a new category 
+            </a>
+        </div>
+        <table class="ui table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Category Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            <apex:repeat value="{!categories}" var="category">
+                <tr>
+                    <td>{!category.Id}</td>
+                    <td>
+                        <apex:outputLink value="{!$Page.CategoryEdit}?id={!category.id}">
+                            {!category.Name}
+                        </apex:outputLink>
+                    </td>
+                </tr>
+            </apex:repeat>
+        </tbody>
+        </table>
+    </c:CommonLayout>
+</apex:page>

@@ -1,0 +1,228 @@
+<apex:page showHeader="false" sidebar="false">
+    <c:CommonLayout pageTitle="Homepage">
+        <div class="ui container">
+            <div class="categories__container" data-bind="foreach: categories">
+                <div class="ui segment">
+                    <h4 class="ui header categories-container__header" data-bind="click: $root.clickCollapseButton">
+                        <span>
+                            <i class="caret icon" data-bind="css: {right: !collapsed(), down: collapsed()}"></i>
+                        </span>
+                        <span data-bind="text: name"></span>
+                    </h4>
+
+
+
+                    <div class="products__container" data-bind="visible: hasProducts() && collapsed">
+                        <table class="ui very basic table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Price</th>
+                                <th>Total inventory</th>
+                                <th>Count</th>
+                                <th>Cart</th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: products">
+                            <tr>
+                                <td data-bind="text: code"></td>
+                                <td data-bind="text: name"></td>
+                                <td data-bind="text: price"></td>
+                                <td data-bind="text: amount"></td>
+                                <td>
+                                    <div class="ui input">
+                                        <input type="integer" value="0" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <input type="button" class="ui button" value="Add to cart" />
+                                </td>
+                            </tr>
+                        </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </c:CommonLayout>
+
+
+
+
+    <script>
+        var conn = new jsforce.Connection({ 
+            accessToken: '{!$Api.Session_Id}',
+            proxyUrl: '/services/proxy' 
+        });
+
+        var collapsed = new CollapsedCategories('homepage');
+
+
+        function ShoppingCart(prefix){
+            var self = this;
+            self.attributeName = prefix + '_shopping_cart';
+
+            self.countItems = ko.observable(0);
+            self.totalSum = ko.observable(0); 
+
+        }
+
+
+
+        function CollapsedCategories(prefix){
+            var self = this;
+            self.attributeName = prefix + '_categories';
+
+            self.collapsedCategories = [];
+
+            self.init = function(){
+                var cats = store.get(self.attributeName);
+                if (cats){
+                    self.collapsedCategories = cats;
+                }
+
+                console.log(self.collapsedCategories);
+            }
+
+            self.isCollapsed = function(categoryId){
+                var isCollapsed = false;
+                if (self.collapsedCategories){
+                    self.collapsedCategories.forEach(function(item){
+                        if (item['id'] == categoryId){
+                            isCollapsed = item['collapsed'];
+                        }
+                    });
+                }
+                return isCollapsed;
+            }
+
+            self.toggleCollapsed = function(categoryId){
+                self.setCategory(categoryId, !self.isCollapsed(categoryId));
+
+                console.log(categoryId);
+                console.log(self.collapsedCategories);
+
+                self.synchronize();
+            }
+
+
+            self.getCategory = function(categoryId){
+                var category = false;
+                self.collapsedCategories.forEach(function(item){
+                    if (item['id'] == categoryId){
+                        category = item;
+                    }
+                });
+
+                return category;
+            }
+
+            self.setCategory = function(categoryId, isCollapsed){
+                var category = self.getCategory(categoryId);
+                if (false !== category){
+                    category['collapsed'] = isCollapsed;
+                    return;
+                }
+                category = {
+                    'id': categoryId,
+                    'collapsed': isCollapsed
+                }
+                self.collapsedCategories.push(category);
+            }
+
+            self.synchronize = function(){
+                store.set(self.attributeName, self.collapsedCategories);
+            }
+
+            self.init();
+        }
+
+
+
+        // Class to represent a Product
+        function Product(id, name, code, price, amount) {
+            var self = this;
+            
+            self.id = id;
+            self.name = name;
+            self.code = code;
+            self.price = price;
+            self.amount = amount;
+        }
+
+
+        // Class to represent a Category
+        function Category(id, name, collapsed) {
+            var self = this;
+
+            self.id = id;
+            self.name = name;
+            self.collapsed = ko.observable(collapsed);
+            self.products = [];
+
+            self.hasProducts = function(){
+                return self.products.length > 0;
+            }
+        }
+
+        // Overall viewmodel for this screen, along with initial state
+        function ProductsViewModel() {
+            var self = this;
+
+            self.products = ko.observableArray([]);
+            self.categories = ko.observableArray([]);
+
+            self.getProductById = function(id){
+                var product = false;
+                self.products().forEach(function(item){
+                    if (item.id == id){
+                        product = item;
+                    }
+                });
+
+                return product;
+            }
+
+            self.clickCollapseButton = function(category){
+                console.log(category);
+                category.collapsed(!category.collapsed());
+                collapsed.toggleCollapsed(category['id']);
+            }
+
+            conn.apex.get('/product/CategoriesList', function(err, res) {        
+                if (err) { 
+                    return console.error(err); 
+                }
+                console.log(res);
+
+                var products = res['products'];
+                var categories = res['categories'];
+                var relations = res['relations'];
+
+                products.forEach(function(item){
+                    self.products.push(new Product(item['Id'], item['Name'], item['Code__c'], item['Price__c'], item['Total__c']));
+                });
+
+                categories.forEach(function(item){
+                    var category = new Category(item['Id'], item['Name'], collapsed.isCollapsed(item['Id']));
+                    
+                    relations.forEach(function(item){
+                        if (item['Category__c'] != category['id']) return;
+
+                        var product = self.getProductById(item['Product__c']); 
+                        if (product !== false){
+                            category.products.push(product)
+                        }
+                    });
+
+                    self.categories.push(category);
+                });
+
+                console.log(self.categories());
+            });
+        }
+
+        ko.applyBindings(new ProductsViewModel());
+    </script>
+</apex:page>

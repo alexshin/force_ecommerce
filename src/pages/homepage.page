@@ -57,15 +57,143 @@
         });
 
         var collapsed = new CollapsedCategories('homepage');
+        var cart = new ShoppingCart('ecommerce', 50);
 
 
-        function ShoppingCart(prefix){
+
+        function ShoppingCart(prefix, maxQuantityPerItem){
             var self = this;
+
+            // Maximum quantity of per item to order
+            self.maxQuantityPerItem = maxQuantityPerItem;
+
+            // Unique key of row in LocalStorage
             self.attributeName = prefix + '_shopping_cart';
 
+            // Total count of items in the shopping cart
             self.countItems = ko.observable(0);
+
+            // Total sum of items in the shopping cart
             self.totalSum = ko.observable(0); 
 
+            // Items in the cart. Array of objects with keys: id, code, title, count, price 
+            self.cartItems = [];
+
+            // Initilizes a cart
+            self.init = function(){
+                var cartItems = store.get(self.attributeName);
+                if (cartItems) {
+                    self.cartItems = cartItems;
+                }
+                self.recalculateTotals();
+
+                console.log(self.cartItems);
+            }
+
+            // Returns an item from the cart or false
+            self.getCartItem = function(cartItemId){
+                var cartItem = false;
+                self.cartItems.forEach(function(item){
+                    if (item['id'] == cartItemId){
+                        cartItem = item;
+                    }
+                });
+
+                return cartItem;
+            }
+
+            // Recalculates totals
+            self.recalculateTotals = function(){
+                var count = 0;
+                var sum = 0.0;
+
+                self.cartItems.forEach(function(item){
+                    count += parseInt(item['count']);
+                    sum   += parseFloat(item['price']) * parseInt(item['count']); 
+                });
+
+                self.countItems(count);
+                self.totalSum(sum);
+            }
+
+            // Saves the cart to a storage
+            self.synchronize = function(){
+                store.set(self.attributeName, self.cartItems);
+            }
+
+            // Removes item from the cart
+            self.removeItem = function(cartItemId){
+                var foundIndex = false;
+                self.cartItems.forEach(function(item, index){
+                    if (cartItemId == item['id']){
+                        foundIndex = index;
+                    }
+                });
+
+                if (false !== foundIndex) {
+                    self.cartItems.splice(foundIndex, 1);
+                }
+
+                self.recalculateTotals();
+            }
+
+            // Changes item in the cart. Sets new meta information and checks available counts
+            self.changeItem = function(cartItemId, code, title, count, price, maxQuantity){
+                var cartItem = self.getCartItem(cartItemId);
+                var availableCount = 0;
+
+                if (false !== cartItem){
+                    availableCount = parseInt(cartItem['count']);
+                    if (count <= 0 || maxQuantity == 0){
+                        self.removeItem(cartItemId);
+                        return;
+                    }
+                }
+                else {
+                    // Do nothing for absent items
+                    if (count <= 0 || maxQuantity == 0){
+                        return;
+                    }
+                    cartItem = {
+                        'id': cartItemId,
+                        'title': title,
+                        'code': code,
+                        'count': 0,
+                        'price': 0.0
+                    }
+                    self.cartItems.push(cartItem);
+                }
+
+                // Reduces count of product to maximum of shop
+                if (availableCount > self.maxQuantityPerItem){
+                    availableCount = self.maxQuantityPerItem;
+                }
+                
+                // Reduces count of product to maximum of product in warehouse
+                if (availableCount > parseInt(maxQuantity)){
+                    availableCount = parseInt(maxQuantity);
+                }
+
+                cartItem['title'] = title;
+                cartItem['code']  = code;
+                cartItem['count'] = parseInt(availableCount);
+                cartItem['price'] = parseFloat(price);
+
+                self.recalculateTotals();
+            }
+
+            self.addItem = function(cartItemId, code, title, count, price, maxQuantity){
+                var cartItem = self.getCartItem(cartItemId);
+                var newCount = parseInt(count);
+
+                if (false !== cartItem){
+                    newCount = newCount + parseInt(cartItem['count']);
+                }
+
+                self.changeItem(cartItemId, code, title, newCount, price, maxQuantity);
+            }
+
+            self.init();
         }
 
 
@@ -173,6 +301,22 @@
             self.products = ko.observableArray([]);
             self.categories = ko.observableArray([]);
 
+            self.init = function(){
+                self.showDimmer();
+            }
+
+            self.showDimmer = function(){
+                $(document).ready(function(){
+                    $('.page-dimmer').dimmer('show');
+                });
+            }
+
+            self.hideDimmer = function(){
+                $(document).ready(function(){
+                    $('.page-dimmer').dimmer('hide');
+                });
+            }
+
             self.getProductById = function(id){
                 var product = false;
                 self.products().forEach(function(item){
@@ -219,8 +363,11 @@
                     self.categories.push(category);
                 });
 
+                //self.hideDimmer();
                 console.log(self.categories());
             });
+
+            self.init();
         }
 
         ko.applyBindings(new ProductsViewModel());

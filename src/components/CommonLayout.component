@@ -6,6 +6,9 @@
     
     <div class="pusher">
         <div class="ui container page-content__container">
+            <div class="ui inverted page dimmer page-dimmer">
+                <div class="ui text loader">Loading</div>
+            </div>
             <div class="ui stackable stackable grid">
                 <div class="fourteen column">
                     <c:TopMenu activeItem="{! activeItem }" />
